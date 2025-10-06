@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n-key="page_title">সম্পূর্ণ ব্যক্তিত্ব পরীক্ষা</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Noto+Sans+Bengali:wght@300;400;600;700&family=Noto+Sans+Devanagari:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  
+  <style>
+    :root {
+      --primary-color: #6a11cb;
+      --secondary-color: #2575fc;
+      --glow: rgba(106, 17, 203, 0.2);
+      --bg-gradient: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      --glass-bg: rgba(255, 255, 255, 0.4);
+      --glass-border: rgba(255, 255, 255, 0.3);
+      --text-dark: #1f2937;
+      --text-light: #4b5563;
+      --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+      --card-bg: rgba(255,255,255,0.5);
+    }
+    
+    .dark-mode {
+        --bg-gradient: linear-gradient(135deg, #292e49, #1e1e2f);
+        --glass-bg: rgba(41, 46, 73, 0.4);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --text-dark: #f5f5f5;
+        --text-light: #d1d5db;
+        --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        --card-bg: rgba(55, 65, 81, 0.5);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', 'Noto Sans Bengali', 'Noto Sans Devanagari', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      background: var(--bg-gradient);
+      color: var(--text-dark);
+      padding: 6rem 1rem 8rem; /* Bottom padding for sticky actions on result screen */
+      overflow-x: hidden;
+      transition: background 0.5s ease, color 0.5s ease;
+    }
+
+    .top-controls {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+    }
+    
+    .control-cluster {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 5px;
+      display: flex;
+      gap: 5px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+
+    .control-cluster button {
+      background: transparent;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 15px;
+      cursor: pointer;
+      color: var(--text-light);
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .lang-switcher button {
+        padding: 0 12px;
+        font-weight: 600;
+        width: auto;
+    }
+
+    .control-cluster button:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .dark-mode .control-cluster button:hover {
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .control-cluster button.active {
+      background: var(--primary-color);
+      color: white;
+      box-shadow: 0 2px 10px var(--glow);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 450px; /* Mobile-first max-width */
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      text-align: center;
+      transition: all 0.5s ease;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      font-size: 1rem;
+      color: var(--text-light);
+      margin-bottom: 2rem;
+    }
+
+    section {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeIn 0.6s forwards;
+      animation-delay: 0.2s;
+    }
+    
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hidden { display: none !important; }
+
+    #start-screen h2 {
+      font-size: 1.5rem; margin-bottom: 1rem; color: var(--text-dark);
+    }
+    #start-screen p {
+      color: var(--text-light); line-height: 1.6; margin-bottom: 1.5rem;
+    }
+    #start-screen p:nth-of-type(2){
+       font-weight: 600; color: var(--primary-color); margin-bottom: 1rem;
+    }
+
+    .test-length-selector {
+      display: flex; flex-direction: column; justify-content: center; gap: 1rem; margin-top: 1rem;
+    }
+    
+    .btn, .test-length-selector button {
+      padding: 12px 25px; font-size: 1rem; font-weight: 600; border-radius: 15px;
+      cursor: pointer; transition: all 0.3s ease;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      color: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .btn:hover, .test-length-selector button:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 25px var(--glow);
+    }
+    
+    .progress-container {
+      width: 100%; background-color: rgba(127,127,127,0.2); border-radius: 10px; margin: 2rem 0;
+      overflow: hidden;
+    }
+    .progress-bar {
+      width: 0%; height: 12px; background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      border-radius: 10px; transition: width 0.4s ease-in-out;
+    }
+    
+    #quizForm { animation: slideIn 0.5s forwards; }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-30px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .question-card { padding: 1.5rem; border-radius: 15px; background: rgba(255,255,255,0.1); }
+    .dark-mode .question-card { background: rgba(0,0,0,0.1); }
+    .question-card h3 { font-size: 1.2rem; margin-bottom: 1.5rem; color: var(--text-dark); line-height: 1.5; }
+    
+    .speak-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 1.5rem;
+        margin-left: 10px;
+        vertical-align: middle;
+        transition: transform 0.2s ease;
+    }
+    .speak-btn:hover {
+        transform: scale(1.2);
+    }
+    
+    .answer-options {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    .answer-options button {
+      background: var(--card-bg); border: 1px solid var(--glass-border);
+      color: var(--text-light); padding: 12px; border-radius: 12px; cursor: pointer;
+      font-weight: 600; transition: all 0.2s ease;
+    }
+    .answer-options button:hover {
+      background: var(--primary-color); color: white; border-color: var(--primary-color); transform: scale(1.05);
+    }
+    
+    #result-card { 
+        background: var(--card-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 1.5rem;
+        width: 100%;
+        transform: translateZ(0); /* Promotes to new layer for html2canvas */
+    }
+    #result-card h2 { font-size: 1rem; color: var(--text-light); margin-bottom: 0.25rem; }
+    #result-type { font-size: 3.5rem; font-weight: 700; color: var(--primary-color); margin: 0; line-height: 1; }
+    #result-title { font-size: 1.5rem; font-weight: 600; color: var(--text-dark); }
+    #result-tagline { font-size: 0.9rem; color: var(--secondary-color); font-style: italic; margin: 0.25rem 0 1rem; }
+    .chart-container { position: relative; width: 100%; max-width: 280px; margin: 0 auto 1rem; }
+    #result-chars ul { list-style: none; padding: 0; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+    #result-chars li { background: rgba(255,255,255,0.2); color: var(--text-light); padding: 5px 12px; border-radius: 10px; font-size: 0.8rem; }
+    .dark-mode #result-chars li { background: rgba(0,0,0,0.2); }
+    
+    .sticky-actions {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        padding: 1rem;
+        z-index: 200;
+        border-top: 1px solid var(--glass-border);
+        display: grid;
+        grid-template-areas:
+            "name name name"
+            "download share restart";
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        animation: slideUp 0.5s forwards;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    .sticky-actions #userName { 
+        grid-area: name;
+        width: 100%; padding: 12px; border-radius: 12px;
+        border: 1px solid var(--glass-border); font-size: 1rem;
+        text-align: center; background: rgba(255,255,255,0.7); color: var(--text-dark);
+    }
+    .dark-mode .sticky-actions #userName { background: rgba(31, 41, 55, 0.7); }
+    .sticky-actions .btn { width: 100%; padding: 12px 5px; font-size: 0.9rem; }
+    .sticky-actions [onclick="shareResult()"] { background: #25D366; }
+    .sticky-actions [onclick="resetQuiz()"] { background: var(--text-light); }
+    
+    #last-result-container {
+      background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 15px;
+      padding: 1rem; margin: 1.5rem 0; font-size: 0.9rem;
+    }
+    #last-result-container p { margin: 0; }
+    #last-result-container strong { color: var(--primary-color); }
+    
+    /* Desktop and Tablet Styles */
+    @media (min-width: 768px) {
+        body { padding: 4rem 1rem; }
+        .top-controls {
+            flex-direction: row;
+            top: 20px;
+            right: 20px;
+        }
+        .container {
+            max-width: 700px;
+            padding: 2.5rem;
+        }
+        header h1 { font-size: 2.5rem; }
+        #start-screen h2 { font-size: 1.8rem; }
+        .test-length-selector { flex-direction: row; }
+        #result-card { padding: 2rem; }
+        #result-type { font-size: 4rem; }
+        #result-title { font-size: 2rem; }
+        .chart-container { max-width: 350px; }
+
+        .sticky-actions {
+            position: static;
+            background: transparent;
+            backdrop-filter: none;
+            border-top: none;
+            padding: 0;
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            animation: none;
+            gap: 1.5rem;
+        }
+        .action-buttons-group { display: flex; gap: 1rem; justify-content: center; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 🌍 Top Controls -->
+  <div class="top-controls">
+    <div class="control-cluster">
+        <button id="night-mode-toggle" title="Toggle Night Mode">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <button id="music-toggle" title="Toggle Music">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon></svg>
+        </button>
+    </div>
+    <div class="control-cluster lang-switcher">
+        <button id="lang-bn" onclick="setLanguage('bn')" class="active">বাংলা</button>
+        <button id="lang-hi" onclick="setLanguage('hi')">हिंदी</button>
+        <button id="lang-en" onclick="setLanguage('en')">English</button>
+    </div>
+  </div>
+
+  <!-- 📦 Main Container -->
+  <div class="container">
+    <header>
+      <h1 data-i18n-key="header_title">Personality Test</h1>
+      <p data-i18n-key="header_subtitle">Discover your true self.</p>
+    </header>
+
+    <!-- 🧭 Start Screen -->
+    <section id="start-screen">
+      <div id="last-result-container" class="hidden"></div>
+      <h2 data-i18n-key="start_title">Welcome!</h2>
+      <p data-i18n-key="start_desc">This test helps you understand your personality. Answer honestly for the most accurate result.</p>
+      <p data-i18n-key="start_select_label">Select test length:</p>
+      <div class="test-length-selector">
+        <button onclick="startQuiz(10)">10 <span data-i18n-key="questions_label">Questions</span></button>
+        <button onclick="startQuiz(20)">20 <span data-i18n-key="questions_label">Questions</span></button>
+        <button onclick="startQuiz(30)">30 <span data-i18n-key="questions_label">Questions</span></button>
+      </div>
+    </section>
+
+    <!-- 📊 Progress Bar -->
+    <div id="progress-container" class="progress-container hidden">
+      <div id="progressBar" class="progress-bar"></div>
+    </div>
+
+    <!-- 🧠 Quiz Form -->
+    <form id="quizForm" class="hidden"></form>
+
+    <!-- 📘 Result Button -->
+    <div id="resultBtnContainer" class="hidden">
+      <button onclick="calculateResult()" class="btn" data-i18n-key="view_result">View Result</button>
+    </div>
+
+    <!-- 🎯 Result Display -->
+    <section id="result" class="hidden">
+      <div id="result-card">
+        <h2 data-i18n-key="result_heading">Your Personality Type is:</h2>
+        <div id="result-type"></div>
+        <div id="result-title"></div>
+        <p id="result-tagline"></p>
+        <div class="chart-container">
+            <canvas id="resultChart"></canvas>
+        </div>
+        <div id="result-chars"></div>
+      </div>
+    </section>
+  </div>
+  
+  <!-- Action Buttons (Sticky Footer) -->
+  <div id="result-actions" class="sticky-actions hidden">
+    <input id="userName" type="text" data-i18n-placeholder-key="name_placeholder" placeholder="Enter your name">
+    <button onclick="downloadResultImage()" class="btn" data-i18n-key="download_button">Download</button>
+    <button onclick="shareResult()" class="btn" data-i18n-key="share_button">Share</button>
+    <button onclick="resetQuiz()" class="btn" data-i18n-key="restart_button">Restart</button>
+  </div>
+  
+  <audio id="background-music" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    'use strict';
+    // --- STATE & CONFIG ---
+    let currentLang = 'bn';
+    let currentQuestionIndex = 0;
+    let TOTAL_QUESTIONS = 0;
+    let userAnswers = [];
+    let selectedQuestions = [];
+    let personalityResult = '';
+    let resultChart = null;
+    let synth = window.speechSynthesis;
+    let voices = [];
+
+    // --- INTERNATIONALIZATION (i18n) DATA ---
+    const i18n = {
+      bn: {
+        page_title: "সম্পূর্ণ ব্যক্তিত্ব পরীক্ষা", header_title: "ব্যক্তিত্ব পরীক্ষা", header_subtitle: "আপনার আসল সত্তা আবিষ্কার করুন।",
+        start_title: "স্বাগতম!", start_desc: "এই পরীক্ষাটি আপনাকে ১৬টি ভিন্ন ধরনের ব্যক্তিত্বের উপর ভিত্তি করে আপনার ব্যক্তিত্ব বুঝতে সাহায্য করে। সবচেয়ে সঠিক ফলাফলের জন্য সততার সাথে উত্তর দিন।",
+        start_select_label: "পরীক্ষার দৈর্ঘ্য নির্বাচন করুন:", questions_label: "টি প্রশ্ন", view_result: "ফলাফল দেখুন",
+        result_heading: "আপনার ব্যক্তিত্বের ধরন হলো:",
+        name_placeholder: "আপনার নাম লিখুন", share_button: "শেয়ার করুন", restart_button: "পুনরায়", download_button: "ডাউনলোড",
+        answer_options: ["একদম একমত", "একমত", "নিরপেক্ষ", "একমত নই", "একদম একমত নই"],
+        last_result_intro: "আপনার শেষ ফলাফল:",
+        chart_labels: ["বহির্মুখিতা", "अंतर्ज्ञान", "চিন্তা", "বিচার"],
+        q: {
+          q1_ie: "আপনি সামাজিক অনুষ্ঠানে থাকলে শক্তি পান।", q2_ie: "একটি ব্যস্ত সপ্তাহের পর আপনার একা সময় কাটাতে প্রয়োজন হয়।", q3_ie: "আপনি সাধারণত কথোপকথন শুরু করতে পছন্দ করেন।", q4_ie: "আপনি বড় দলের চেয়ে ছোট দলে কথা বলতে বেশি স্বাচ্ছন্দ্য বোধ করেন।", q5_ie: "আপনি মনোযোগের কেন্দ্রবিন্দু হতে অপছন্দ করেন।",
+          q6_ns: "আপনি বাস্তব তথ্যের উপর বেশি মনোযোগ দেন, তত্ত্বের চেয়ে।", q7_ns: "আপনি ভবিষ্যতের সম্ভাবনা নিয়ে কল্পনা করতে ভালোবাসেন।", q8_ns: "আপনি বিমূর্ত ধারণার চেয়ে বাস্তব অভিজ্ঞতা পছন্দ করেন।", q9_ns: "আপনি প্রায়ই জিনিসের গভীর অর্থ খুঁজে বের করার চেষ্টা করেন।", q10_ns: "আপনি বিস্তারিত নির্দেশাবলী অনুসরণ করতে পছন্দ করেন।",
+          q11_tf: "সিদ্ধান্ত নেওয়ার সময় আপনি যুক্তিকে বেশি গুরুত্ব দেন।", q12_tf: "আপনি অন্যদের অনুভূতি দ্বারা সহজে প্রভাবিত হন।", q13_tf: "আপনি সত্য কথা বলতে দ্বিধা করেন না, এমনকি যদি তা কঠোর হয়।", q14_tf: "আপনি সম্প্রীতি বজায় রাখতে সমালোচনার ঊর্ধ্বে থাকেন।", q15_tf: "আপনি বস্তুনিষ্ঠ নীতিতে বেশি বিশ্বাস করেন ব্যক্তিগত অনুভূতির চেয়ে।",
+          q16_jp: "আপনি পরিকল্পনা অনুযায়ী কাজ করতে পছন্দ করেন।", q17_jp: "আপনি কাজগুলো শেষ মুহূর্তে করতে পছন্দ করেন।", q18_jp: "আপনার কাজের জায়গা খুব গোছানো থাকে।", q19_jp: "আপনি নতুন পরিস্থিতির সাথে সহজে খাপ খাইয়ে নিতে পারেন।", q20_jp: "আপনি সময়সীমা পূরণ করাকে খুব গুরুত্বপূর্ণ মনে করেন।"
+        },
+        results: {
+          INTJ: { title: "স্থপতি", tagline: "সবকিছুর জন্য একটি পরিকল্পনা আছে।", chars: ["বিশ্লেষণাত্মক", "সৃজনশীল", "যুক্তিবাদী"] },
+          INTP: { title: "যুক্তিবিদ", tagline: "জ্ঞানের জন্য অতৃপ্ত তৃষ্ণা।", chars: ["যৌক্তিক", "নির্ভুল", "ভাবুক"] },
+          ENTJ: { title: "সেনাপতি", tagline: "একজন নেতা পথ খুঁজে বের করেন অথবা তৈরি করেন।", chars: ["নেতৃত্ব", "দক্ষ", "আত্মবিশ্বাসী"] },
+          ENTP: { title: "বিতর্ককারী", tagline: "একটি বুদ্ধিবৃত্তিক চ্যালেঞ্জের চেয়ে ভালো কিছু নেই।", chars: ["উদ্ভাবনী", "দ্রুত বুদ্ধিমান", "কৌতূহলী"] },
+          INFJ: { title: "উকিল", tagline: "চুপচাপ এবং রহস্যময়, কিন্তু খুব অনুপ্রেরণামূলক।", chars: ["অন্তর্দৃষ্টিপূর্ণ", "সহানুভূতিশীল", "আদর্শবাদী"] },
+          INFP: { title: "মধ্যস্থতাকারী", tagline: "সবসময় ভালো দিক খোঁজার চেষ্টা করেন।", chars: ["আদর্শবাদী", "সৃজনশীল", "সহানুভূতিশীল"] },
+          ENFJ: { title: "নায়ক", tagline: "বিশ্বে একটি ছাপ ফেলতে চান।", chars: ["অনুপ্রেরণাদায়ক", "দানশীল", "আকর্ষক"] },
+          ENFP: { title: "প্রচারক", tagline: "হাসির একটি কারণ খুঁজে বের করা যায়।", chars: ["উৎসাহী", "সৃজনশীল", " বন্ধুত্বপূর্ণ"] },
+          ISTJ: { title: "লজিস্টিশিয়ান", tagline: "সততা এবং অক্লান্ত পরিশ্রমের প্রতীক।", chars: ["দায়িত্বশীল", "সংগঠিত", "বাস্তববাদী"] },
+          ISFJ: { title: "রক্ষক", tagline: "খুব নিবেদিত এবং আন্তরিক রক্ষক।", chars: ["সহায়ক", "নির্ভরযোগ্য", "ধৈর্যশীল"] },
+          ESTJ: { title: "কার্যনির্বাহী", tagline: "জিনিস এবং মানুষ পরিচালনায় পারদর্শী।", chars: ["সংগঠিত", "নেতৃত্ব", "যৌক্তিক"] },
+          ESFJ: { title: "কনসাল", tagline: "অসাধারণভাবে যত্নশীল, সামাজিক এবং জনপ্রিয়।", chars: ["সামাজিক", "যত্নশীল", "সহযোগী"] },
+          ISTP: { title: "শিল্পী", tagline: "সব ধরনের সরঞ্জাম ব্যবহারে পারদর্শী।", chars: ["যৌক্তিক", "বাস্তববাদী", "অভিযোজিত"] },
+          ISFP: { title: "অভিযাত্রী", tagline: "নতুন কিছু চেষ্টা করতে সর্বদা প্রস্তুত।", chars: ["সৃজনশীল", "অভিযোজিত", "কমনীয়"] },
+          ESTP: { title: "উদ্যোক্তা", tagline: "বুদ্ধিমান, উদ্যমী এবং খুব উপলব্ধিপ্রবণ মানুষ।", chars: ["উদ্যমী", "অভিযোজিত", "প্রত্যয়ী"] },
+          ESFP: { title: "বিনোদনকারী", tagline: "হঠাৎ করে গান এবং নাচে মেতে উঠতে পারেন।", chars: ["উৎসাহী", "স্বতঃস্ফূর্ত", "সামাজিক"] }
+        }
+      },
+      hi: {
+        page_title: "सम्पूर्ण व्यक्तित्व परीक्षण", header_title: "व्यक्तित्व परीक्षण", header_subtitle: "अपने सच्चे स्वरूप की खोज करें।",
+        start_title: "आपका स्वागत है!", start_desc: "यह परीक्षण आपको 16 विभिन्न प्रकारों के आधार पर आपके व्यक्तित्व को समझने में मदद करता है। सबसे सटीक परिणाम के लिए ईमानदारी से उत्तर दें।",
+        start_select_label: "परीक्षण की लंबाई चुनें:", questions_label: "प्रश्न", view_result: "परिणाम देखें",
+        result_heading: "आपका व्यक्तित्व प्रकार है:",
+        name_placeholder: "अपना नाम दर्ज करें", share_button: "साझा करें", restart_button: "पुनः आरंभ", download_button: "डाउनलोड",
+        answer_options: ["पूरी तरह सहमत", "सहमत", "तटस्थ", "असहमत", "पूरी तरह असहमत"],
+        last_result_intro: "आपका अंतिम परिणाम:",
+        chart_labels: ["बहिर्मुखता", "अंतर्ज्ञान", "सोच", "निर्णय"],
+        q: {
+          q1_ie: "आप सामाजिक समारोहों में ऊर्जा प्राप्त करते हैं।", q2_ie: "एक व्यस्त सप्ताह के बाद आपको अकेले समय बिताने की आवश्यकता होती है।", q3_ie: "आप आमतौर पर बातचीत शुरू करना पसंद करते हैं।", q4_ie: "आप बड़े समूहों की तुलना में छोटे समूहों में बात करने में अधिक सहज महसूस करते हैं।", q5_ie: "आप ध्यान का केंद्र बनना नापसंद करते हैं।",
+          q6_ns: "आप सिद्धांतों के बजाय ठोस तथ्यों पर अधिक ध्यान केंद्रित करते हैं।", q7_ns: "आप भविष्य की संभावनाओं के बारे में कल्पना करना पसंद करते हैं।", q8_ns: "आप अमूर्त विचारों के बजाय व्यावहारिक अनुभवों को पसंद करते हैं।", q9_ns: "आप अक्सर चीजों के गहरे अर्थ की तलाश करते हैं।", q10_ns: "आप विस्तृत निर्देशों का पालन करना पसंद करते हैं।",
+          q11_tf: "निर्णय लेते समय आप तर्क को अधिक महत्व देते हैं।", q12_tf: "आप दूसरों की भावनाओं से आसानी से प्रभावित हो जाते हैं।", q13_tf: "आप सच कहने में संकोच नहीं करते, भले ही वह कठोर हो।", q14_tf: "आप सद्भाव बनाए रखने के लिए आलोचना से बचते हैं।", q15_tf: "आप व्यक्तिगत भावनाओं से अधिक वस्तुनिष्ठ सिद्धांतों में विश्वास करते हैं।",
+          q16_jp: "आप योजनाओं के अनुसार काम करना पसंद करते हैं।", q17_jp: "आप कार्यों को अंतिम समय पर करना पसंद करते हैं।", q18_jp: "आपका कार्यक्षेत्र बहुत व्यवस्थित रहता है।", q19_jp: "आप नई परिस्थितियों में आसानी से ढल जाते हैं।", q20_jp: "आप समय-सीमाओं को पूरा करना बहुत महत्वपूर्ण मानते हैं।"
+        },
+        results: {
+          INTJ: { title: "वास्तुकार", tagline: "हर चीज़ के लिए एक योजना है।", chars: ["विश्लेषणात्मक", "रचनात्मक", "तर्कसंगत"] },
+          INTP: { title: "तर्कशास्त्री", tagline: "ज्ञान के लिए एक अतृप्त प्यास।", chars: ["तार्किक", "सटीक", "विचारशील"] },
+          ENTJ: { title: "सेनापति", tagline: "एक नेता या तो रास्ता ढूंढता है या बनाता है।", chars: ["नेतृत्व", "कुशल", "आत्मविश्वासी"] },
+          ENTP: { title: "विवादी", tagline: "एक बौद्धिक चुनौती से बेहतर कुछ नहीं।", chars: ["अभिनव", "तेज-तर्रार", "जिज्ञासु"] },
+          INFJ: { title: "अधिवक्ता", tagline: "चुप और रहस्यमय, लेकिन बहुत प्रेरणादायक।", chars: ["अंतर्दृष्टिपूर्ण", "सहानुभूतिपूर्ण", "आदर्शवादी"] },
+          INFP: { title: "मध्यस्थ", tagline: "हमेशा अच्छी चीज़ों की तलाश में रहते हैं।", chars: ["आदर्शवादी", "रचनात्मक", "सहानुभूतिपूर्ण"] },
+          ENFJ: { title: "नायक", tagline: "दुनिया पर एक छाप छोड़ना चाहते हैं।", chars: ["प्रेरणादायक", "उदार", "आकर्षक"] },
+          ENFP: { title: "प्रचारक", tagline: "मुस्कुराने का एक कारण खोजा जा सकता है।", chars: ["उत्साही", "रचनात्मक", "मिलनसार"] },
+          ISTJ: { title: "तर्कशास्त्री", tagline: "ईमानदारी और अथक परिश्रम का प्रतीक।", chars: ["जिम्मेदार", "संगठित", "व्यावहारिक"] },
+          ISFJ: { title: "रक्षक", tagline: "बहुत समर्पित और गर्मजोशी से रक्षा करने वाले।", chars: ["सहायक", "विश्वसनीय", "धैर्यवान"] },
+          ESTJ: { title: "कार्यकारी", tagline: "चीजों और लोगों के प्रबंधन में माहिर।", chars: ["संगठित", "नेतृत्व", "तार्किक"] },
+          ESFJ: { title: "सलाहकार", tagline: "असाधारण रूप से देखभाल करने वाले, सामाजिक और लोकप्रिय।", chars: ["सामाजिक", "देखभाल करने वाला", "सहयोगी"] },
+          ISTP: { title: "कलाकार", tagline: "सभी प्रकार के उपकरणों के साथ साहसी और व्यावहारिक प्रयोगकर्ता।", chars: ["तार्किक", "व्यावहारिक", "अनुकूलनीय"] },
+          ISFP: { title: "साहसी", tagline: "हमेशा कुछ नया करने की कोशिश करने को तैयार।", chars: ["रचनात्मक", "अनुकूलनीय", "आकर्षक"] },
+          ESTP: { title: "उद्यमी", tagline: "स्मार्ट, ऊर्जावान और बहुत बोधगम्य लोग।", chars: ["ऊर्जावान", "अनुकूलनीय", "प्रत्ययकारी"] },
+          ESFP: { title: "मनोरंजक", tagline: "अचानक गीत और नृत्य में फूट सकते हैं।", chars: ["उत्साही", "सहज", "सामाजिक"] }
+        }
+      },
+      en: {
+        page_title: "Comprehensive Personality Test", header_title: "Personality Test", header_subtitle: "Discover your true self.",
+        start_title: "Welcome!", start_desc: "This test helps you understand your personality based on 16 different types. Answer honestly for the most accurate result.",
+        start_select_label: "Select test length:", questions_label: "Questions", view_result: "View Result",
+        result_heading: "Your Personality Type is:",
+        name_placeholder: "Enter your name", share_button: "Share", restart_button: "Restart", download_button: "Download",
+        answer_options: ["Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"],
+        last_result_intro: "Your last result was:",
+        chart_labels: ["Extraversion", "Intuition", "Thinking", "Judging"],
+        q: {
+          q1_ie: "You gain energy from social gatherings.", q2_ie: "You need time alone to recharge after a busy week.", q3_ie: "You typically enjoy initiating conversations.", q4_ie: "You feel more comfortable interacting in small groups than large ones.", q5_ie: "You dislike being the center of attention.",
+          q6_ns: "You focus more on concrete facts and details than on theories.", q7_ns: "You love to imagine the possibilities of the future.", q8_ns: "You prefer practical experiences over abstract ideas.", q9_ns: "You often find yourself looking for the deeper meaning in things.", q10_ns: "You prefer to follow detailed instructions.",
+          q11_tf: "You value logic and reason when making decisions.", q12_tf: "You are easily influenced by the feelings of others.", q13_tf: "You don't hesitate to speak the truth, even if it's harsh.", q14_tf: "You tend to avoid confrontation to maintain harmony.", q15_tf: "You believe more in objective principles than personal feelings.",
+          q16_jp: "You prefer to have a clear plan and stick to it.", q17_jp: "You tend to leave tasks until the last minute.", q18_jp: "Your workspace is very tidy and organized.", q19_jp: "You are adaptable and can easily adjust to new situations.", q20_jp: "You feel a strong need to meet deadlines."
+        },
+        results: {
+          INTJ: { title: "The Architect", tagline: "Imaginative and strategic thinkers, with a plan for everything.", chars: ["Analytical", "Creative", "Logical"] },
+          INTP: { title: "The Logician", tagline: "Innovative inventors with an unquenchable thirst for knowledge.", chars: ["Logical", "Precise", "Pensive"] },
+          ENTJ: { title: "The Commander", tagline: "Bold, imaginative and strong-willed leaders, always finding a way.", chars: ["Leadership", "Efficient", "Confident"] },
+          ENTP: { title: "The Debater", tagline: "Smart and curious thinkers who cannot resist an intellectual challenge.", chars: ["Innovative", "Quick-witted", "Curious"] },
+          INFJ: { title: "The Advocate", tagline: "Quiet and mystical, yet very inspiring and tireless idealists.", chars: ["Insightful", "Compassionate", "Idealistic"] },
+          INFP: { title: "The Mediator", tagline: "Poetic, kind and altruistic people, always eager to help a good cause.", chars: ["Idealistic", "Creative", "Empathetic"] },
+          ENFJ: { title: "The Protagonist", tagline: "Charismatic and inspiring leaders, able to mesmerize their listeners.", chars: ["Inspiring", "Generous", "Charismatic"] },
+          ENFP: { title: "The Campaigner", tagline: "Enthusiastic, creative and sociable free spirits, who can always find a reason to smile.", chars: ["Enthusiastic", "Creative", "Sociable"] },
+          ISTJ: { title: "The Logistician", tagline: "Practical and fact-minded individuals, whose reliability cannot be doubted.", chars: ["Responsible", "Organized", "Pragmatic"] },
+          ISFJ: { title: "The Defender", tagline: "Very dedicated and warm protectors, always ready to defend their loved ones.", chars: ["Supportive", "Reliable", "Patient"] },
+          ESTJ: { title: "The Executive", tagline: "Excellent administrators, unsurpassed at managing things – or people.", chars: ["Organized", "Leadership", "Logical"] },
+          ESFJ: { title: "The Consul", tagline: "Extraordinarily caring, social and popular people, always eager to help.", chars: ["Sociable", "Caring", "Cooperative"] },
+          ISTP: { title: "The Virtuoso", tagline: "Bold and practical experimenters, masters of all kinds of tools.", chars: ["Logical", "Pragmatic", "Adaptable"] },
+          ISFP: { title: "The Adventurer", tagline: "Flexible and charming artists, always ready to explore and experience something new.", chars: ["Creative", "Adaptable", "Charming"] },
+          ESTP: { title: "The Entrepreneur", tagline: "Smart, energetic and very perceptive people, who truly enjoy living on the edge.", chars: ["Energetic", "Adaptable", "Persuasive"] },
+          ESFP: { title: "The Entertainer", tagline: "Spontaneous, energetic and enthusiastic people – life is never boring around them.", chars: ["Enthusiastic", "Spontaneous", "Sociable"] }
+        }
+      }
+    };
+    
+    const ALL_QUESTIONS = {
+        IE: [ { key: 'q1_ie', direction: 1 }, { key: 'q2_ie', direction: -1 }, { key: 'q3_ie', direction: 1 }, { key: 'q4_ie', direction: -1 }, { key: 'q5_ie', direction: -1 } ],
+        NS: [ { key: 'q6_ns', direction: -1 }, { key: 'q7_ns', direction: 1 }, { key: 'q8_ns', direction: -1 }, { key: 'q9_ns', direction: 1 }, { key: 'q10_ns', direction: -1 } ],
+        TF: [ { key: 'q11_tf', direction: 1 }, { key: 'q12_tf', direction: -1 }, { key: 'q13_tf', direction: 1 }, { key: 'q14_tf', direction: -1 }, { key: 'q15_tf', direction: 1 } ],
+        JP: [ { key: 'q16_jp', direction: 1 }, { key: 'q17_jp', direction: -1 }, { key: 'q18_jp', direction: 1 }, { key: 'q19_jp', direction: -1 }, { key: 'q20_jp', direction: 1 } ]
+    };
+
+    // --- DOM Elements ---
+    const startScreen = document.getElementById('start-screen');
+    const quizForm = document.getElementById('quizForm');
+    const resultScreen = document.getElementById('result');
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progressBar');
+    const resultBtnContainer = document.getElementById('resultBtnContainer');
+    const nightModeToggle = document.getElementById('night-mode-toggle');
+    const musicToggle = document.getElementById('music-toggle');
+    const backgroundMusic = document.getElementById('background-music');
+    const resultActions = document.getElementById('result-actions');
+
+    // --- Functions ---
+    
+    function loadVoices() {
+      voices = synth.getVoices();
+      if (synth.onvoiceschanged !== undefined) {
+        synth.onvoiceschanged = () => voices = synth.getVoices();
+      }
+    }
+
+    function speakQuestion(buttonEl) {
+        if (synth.speaking) {
+            synth.cancel();
+            return;
+        }
+        const questionText = buttonEl.previousElementSibling.textContent;
+        const utterance = new SpeechSynthesisUtterance(questionText);
+        
+        let langCode, voice;
+        if (currentLang === 'bn') langCode = 'bn-IN';
+        else if (currentLang === 'hi') langCode = 'hi-IN';
+        else langCode = 'en-GB';
+        
+        voice = voices.find(v => v.lang === langCode);
+        utterance.voice = voice;
+        utterance.lang = langCode;
+        
+        synth.speak(utterance);
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      document.documentElement.lang = lang;
+      synth.cancel();
+      
+      document.querySelectorAll('[data-i18n-key]').forEach(el => {
+        const key = el.getAttribute('data-i18n-key');
+        if(i18n[lang][key]) { el.innerHTML = i18n[lang][key]; }
+      });
+      
+      document.querySelectorAll('[data-i18n-placeholder-key]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder-key');
+        if(i18n[lang][key]) { el.placeholder = i18n[lang][key]; }
+      });
+
+      document.querySelectorAll('.lang-switcher button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`lang-${lang}`).classList.add('active');
+      
+      if(resultChart) {
+          resultChart.data.labels = i18n[currentLang].chart_labels;
+          resultChart.update();
+      }
+      displayLastResult();
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function prepareQuiz(num) {
+        selectedQuestions = [];
+        let counts = {};
+
+        if (num === 10) {
+            counts = { IE: 2, NS: 2, TF: 3, JP: 3 };
+        } else if (num === 20) {
+            counts = { IE: 5, NS: 5, TF: 5, JP: 5 };
+        } else if (num === 30) {
+             Object.keys(ALL_QUESTIONS).forEach(trait => {
+                ALL_QUESTIONS[trait].forEach(q => {
+                    selectedQuestions.push({ ...q, trait });
+                });
+            });
+            shuffleArray(selectedQuestions);
+            selectedQuestions = selectedQuestions.slice(0,30);
+            return;
+        }
+
+        for (const trait in counts) {
+            const traitQuestions = [...ALL_QUESTIONS[trait]];
+            shuffleArray(traitQuestions);
+            for (let i = 0; i < counts[trait]; i++) {
+                selectedQuestions.push({ ...traitQuestions[i % traitQuestions.length], trait });
+            }
+        }
+        shuffleArray(selectedQuestions);
+    }
+    
+    function startQuiz(num) {
+      TOTAL_QUESTIONS = num;
+      currentQuestionIndex = 0;
+      userAnswers = new Array(TOTAL_QUESTIONS);
+      prepareQuiz(num);
+
+      startScreen.classList.add('hidden');
+      quizForm.classList.remove('hidden');
+      progressContainer.classList.remove('hidden');
+      
+      displayQuestion();
+    }
+    
+    function displayQuestion() {
+      if (currentQuestionIndex >= TOTAL_QUESTIONS) {
+        quizForm.classList.add('hidden');
+        resultBtnContainer.classList.remove('hidden');
+        synth.cancel();
+        return;
+      }
+
+      const questionData = selectedQuestions[currentQuestionIndex];
+      const questionText = i18n[currentLang].q[questionData.key];
+      
+      const answerKeys = i18n[currentLang].answer_options;
+      const answerValues = [2, 1, 0, -1, -2];
+      let answerOptions = answerKeys.map((key, index) => ({ text: key, value: answerValues[index] }));
+      shuffleArray(answerOptions);
+      
+      let optionsHTML = '';
+      answerOptions.forEach(option => {
+          optionsHTML += `<button type="button" onclick="handleAnswer(${option.value})">${option.text}</button>`;
+      });
+
+      quizForm.innerHTML = `
+        <div class="question-card" style="animation: slideIn 0.5s forwards;">
+          <h3>
+             ${currentQuestionIndex + 1}. <span class="question-text">${questionText}</span><button class="speak-btn" onclick="speakQuestion(this)">🔊</button>
+          </h3>
+          <div class="answer-options">
+            ${optionsHTML}
+          </div>
+        </div>
+      `;
+      
+      updateProgressBar();
+    }
+
+    function handleAnswer(value) {
+      userAnswers[currentQuestionIndex] = value;
+      currentQuestionIndex++;
+      synth.cancel();
+      displayQuestion();
+    }
+
+    function updateProgressBar() {
+      const progress = (currentQuestionIndex / TOTAL_QUESTIONS) * 100;
+      progressBar.style.width = `${progress}%`;
+    }
+    
+    function calculateResult() {
+      const scores = { IE: 0, NS: 0, TF: 0, JP: 0 };
+      const maxScorePerTrait = Math.ceil(TOTAL_QUESTIONS / 4) * 2;
+
+      selectedQuestions.forEach((q, index) => {
+          const answerValue = userAnswers[index];
+          scores[q.trait] += answerValue * q.direction;
+      });
+      
+      let result = '';
+      result += scores.IE >= 0 ? 'E' : 'I';
+      result += scores.NS >= 0 ? 'N' : 'S';
+      result += scores.TF >= 0 ? 'T' : 'F';
+      result += scores.JP >= 0 ? 'J' : 'P';
+      
+      personalityResult = result;
+
+      const chartScores = [
+          ((scores.IE + maxScorePerTrait) / (2 * maxScorePerTrait)) * 100,
+          ((scores.NS + maxScorePerTrait) / (2 * maxScorePerTrait)) * 100,
+          ((scores.TF + maxScorePerTrait) / (2 * maxScorePerTrait)) * 100,
+          ((scores.JP + maxScorePerTrait) / (2 * maxScorePerTrait)) * 100
+      ];
+      
+      displayResult(result, chartScores);
+    }
+    
+    function displayResult(type, scores) {
+        resultBtnContainer.classList.add('hidden');
+        progressContainer.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        resultActions.classList.remove('hidden');
+
+        const resultData = i18n[currentLang].results[type];
+        
+        document.getElementById('result-type').textContent = type;
+        document.getElementById('result-title').textContent = resultData.title;
+        document.getElementById('result-tagline').textContent = resultData.tagline;
+        
+        let charsHTML = `<ul>`;
+        resultData.chars.slice(0, 3).forEach(char => { charsHTML += `<li>${char}</li>`; });
+        charsHTML += '</ul>';
+        document.getElementById('result-chars').innerHTML = charsHTML;
+        
+        renderRadarChart(scores);
+        triggerConfetti();
+        
+        try {
+            localStorage.setItem('personalityResult', JSON.stringify({ type, title: i18n.en.results[type].title }));
+        } catch(e) { console.error("Could not save to local storage", e); }
+    }
+    
+    function renderRadarChart(scores) {
+        const ctx = document.getElementById('resultChart').getContext('2d');
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)';
+        const textColor = isDarkMode ? '#f5f5f5' : '#1f2937';
+
+        if(resultChart) { resultChart.destroy(); }
+        resultChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: i18n[currentLang].chart_labels,
+                datasets: [{
+                    label: personalityResult,
+                    data: scores,
+                    backgroundColor: 'rgba(106, 17, 203, 0.2)',
+                    borderColor: 'rgba(106, 17, 203, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(106, 17, 203, 1)',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    r: {
+                        angleLines: { color: gridColor },
+                        grid: { color: gridColor },
+                        pointLabels: { color: textColor, font: { size: 10 } },
+                        ticks: { display: false, stepSize: 25 },
+                        min: 0,
+                        max: 100,
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    function triggerConfetti() {
+        const duration = 3 * 1000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 999 };
+        function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+        const interval = setInterval(() => {
+            const timeLeft = animationEnd - Date.now();
+            if (timeLeft <= 0) { return clearInterval(interval); }
+            const particleCount = 50 * (timeLeft / duration);
+            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+        }, 250);
+    }
+
+    async function shareResult() {
+        const card = document.getElementById('result-card');
+        const userName = document.getElementById('userName').value.trim() || 'I';
+        const resultData = i18n[currentLang].results[personalityResult];
+        const text = `*${userName} took the personality test!* 🥳\n\nMy result is: *${personalityResult} - ${resultData.title}*.\n\n_"${resultData.tagline}"_\n\nFind out your personality type too!`;
+        const shareUrl = window.location.href;
+
+        if (navigator.share && navigator.canShare) {
+            try {
+                const canvas = await html2canvas(card, {
+                    backgroundColor: document.body.classList.contains('dark-mode') ? '#1e1e2f' : '#f5f7fa',
+                    scale: 2
+                });
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], `personality-${personalityResult}.png`, { type: 'image/png' });
+                    if (navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: `${personalityResult} - ${resultData.title}`,
+                            text: text,
+                            url: shareUrl
+                        });
+                    } else { // Fallback for when image can't be shared
+                        await navigator.share({ title: `${personalityResult} - ${resultData.title}`, text: text, url: shareUrl });
+                    }
+                }, 'image/png');
+            } catch (error) {
+                console.error('Error sharing:', error);
+                window.open(`https://wa.me/?text=${encodeURIComponent(text + '\n' + shareUrl)}`, '_blank');
+            }
+        } else {
+            window.open(`https://wa.me/?text=${encodeURIComponent(text + '\n' + shareUrl)}`, '_blank');
+        }
+    }
+
+
+    function resetQuiz() {
+      resultScreen.classList.add('hidden');
+      resultActions.classList.add('hidden');
+      startScreen.classList.remove('hidden');
+      progressBar.style.width = '0%';
+      if(resultChart) { resultChart.destroy(); resultChart = null; }
+    }
+
+    function toggleNightMode() {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        nightModeToggle.innerHTML = isDark 
+            ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`
+            : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+        if(resultChart) { renderRadarChart(resultChart.data.datasets[0].data); }
+        try { localStorage.setItem('theme', isDark ? 'dark' : 'light'); } catch (e) {}
+    }
+
+    function toggleMusic() {
+        if(backgroundMusic.paused) {
+            backgroundMusic.play().catch(e => console.log("Music play failed"));
+            musicToggle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>`;
+        } else {
+            backgroundMusic.pause();
+            musicToggle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon></svg>`;
+        }
+    }
+    
+    function displayLastResult() {
+        try {
+            const lastResult = JSON.parse(localStorage.getItem('personalityResult'));
+            const container = document.getElementById('last-result-container');
+            if(lastResult && i18n[currentLang]) {
+                container.innerHTML = `<p>${i18n[currentLang].last_result_intro} <strong>${lastResult.type} - ${lastResult.title}</strong></p>`;
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        } catch(e) {}
+    }
+
+    function downloadResultImage() {
+        const card = document.getElementById('result-card');
+        html2canvas(card, { 
+            backgroundColor: document.body.classList.contains('dark-mode') ? '#1e1e2f' : '#f5f7fa',
+            scale: 2
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `personality-result-${personalityResult}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                 nightModeToggle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+            }
+        } catch(e) {}
+        
+        loadVoices();
+        setLanguage('bn');
+        
+        nightModeToggle.addEventListener('click', toggleNightMode);
+        musicToggle.addEventListener('click', toggleMusic);
+    });
+  </script>
+</body>
+</html>
